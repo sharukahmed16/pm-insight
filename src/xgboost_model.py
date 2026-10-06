@@ -21,21 +21,23 @@ from features import load_splits, to_matrix
 from random_forest import add_project
 
 RESULTS = "results"
+# raw + squared error was clearly worst in the first (stopped) grid, so it is dropped
 TARGET_OBJECTIVE = [
-    ("raw", "reg:squarederror"),
     ("raw", "reg:absoluteerror"),
     ("log", "reg:squarederror"),
     ("log", "reg:absoluteerror"),
 ]
 MAX_DEPTH = [4, 6]
-MIN_CHILD_WEIGHT = [1, 5]
+MIN_CHILD_WEIGHT = [5]
+LEARNING_RATE = 0.15
+COLSAMPLE = 0.1
 
 
 def fit_predict(Xtr, ytr, Xva, yva, target, objective, **params):
     f = np.log1p if target == "log" else (lambda v: v)
     model = XGBRegressor(
-        objective=objective, n_estimators=1000, learning_rate=0.05, subsample=0.8,
-        colsample_bytree=0.3, tree_method="hist", n_jobs=-1, random_state=42,
+        objective=objective, n_estimators=1000, learning_rate=LEARNING_RATE, subsample=0.8,
+        colsample_bytree=COLSAMPLE, tree_method="hist", n_jobs=-1, random_state=42,
         early_stopping_rounds=50, **params,
     )
     model.fit(Xtr, f(ytr), eval_set=[(Xva, f(yva))], verbose=False)
