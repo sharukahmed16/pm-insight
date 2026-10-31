@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PM-Insight</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; max-width: 700px;
+         margin: 40px auto; padding: 0 16px; line-height: 1.5; }
+  h1 { color: #1f3864; margin-bottom: 4px; }
+  label { display: block; font-weight: bold; margin-top: 14px; }
+  input, textarea, select { width: 100%; padding: 7px; font-family: inherit;
+                            font-size: 15px; }
+  textarea { height: 90px; }
+  button { margin-top: 16px; padding: 9px 22px; font-size: 15px; }
+  .points { font-size: 44px; font-weight: bold; color: #1f3864; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  td, th { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; }
+  hr { margin: 30px 0; border: 0; border-top: 1px solid #ccc; }
+</style>
+</head>
+<body>
+
+<h1>PM-Insight</h1>
+<p>Story point estimation from the task title and description.</p>
+
+<form method="post">
+  <label for="project">Project</label>
+  <select id="project" name="project">
+    {% for p in projects %}
+    <option value="{{ p }}" {% if p == project %}selected{% endif %}>{{ p }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="title">Title</label>
+  <input id="title" name="title" value="{{ title or '' }}">
+
+  <label for="description">Description</label>
+  <textarea id="description" name="description">{{ description or '' }}</textarea>
+
+  <button type="submit">Estimate</button>
+</form>
+
+{% if result %}
+<hr>
+<p class="points">{{ result.points }} points</p>
+<p>Model output {{ result.raw }}, rounded to the nearest planning value.</p>
+
+<p><strong>Most similar past issues:</strong></p>
+<table>
+  <tr><th>Issue</th><th>Actual points</th></tr>
+  {% for s in result.similar %}
+  <tr>
+    <td>{{ s.text[:120] }}</td>
+    <td>{{ s.storypoint }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+</body>
+</html>
