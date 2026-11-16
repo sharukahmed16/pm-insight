@@ -45,6 +45,28 @@ extra mechanism does not pay for its complexity.
 
 ---
 
+## Week 10: board feedback after the midterm
+
+The board asked for (1) better text representations than TF-IDF (word2vec, BERT or a
+domain-specific technique) and (2) other models, including LLMs. The split, metrics,
+baselines and protocol are unchanged; only the representation and the model vary.
+
+Validation macro MAE (lower is better; median baseline 2.965, mean baseline 3.592):
+
+| representation | kNN | RF | Ridge | SVR | XGBoost |
+|---|---:|---:|---:|---:|---:|
+| TF-IDF | 2.897 | 2.964 | 3.004 | 2.887 | 3.019 |
+| LSA (TF-IDF → 300-dim SVD) | 2.916 | 3.161 | 3.179 | 3.193 | 3.095 |
+| Sentence-BERT (MiniLM, frozen) | **2.853** | 3.103 | 2.996 | 3.075 | 2.976 |
+
+Sentence-BERT with analogy-based kNN (median of the 80 most similar training issues of the
+same project) is the best configuration so far and beats both baselines on 10 of 16
+projects. Sentence-BERT does *not* help the tree models, where TF-IDF stays ahead.
+Stack Overflow word2vec (domain-specific) and word2vec trained on our own issues are
+pending. The LLM comparison follows in week 12.
+
+---
+
 ## Dataset
 
 Deep-SE story point dataset — Choetkiertikul et al., *A Deep Learning Model for Estimating
@@ -73,7 +95,9 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Python 3.14, scikit-learn, XGBoost, pandas, Jupyter.
+Python 3.14, scikit-learn, XGBoost, pandas, Jupyter; sentence-transformers for the
+week 10 embeddings. gensim (for `w2v_own` only) has no Python 3.14 wheel yet; see
+`docs/week10_embeddings.md`.
 
 ---
 
@@ -90,7 +114,12 @@ Run from the repository root, in this order. Each script writes its output to `r
 | 5 | `python src/xgboost_model.py` | XGBoost grid search on validation |
 | 6 | `python src/compare.py` | Cross-model comparison against the baselines |
 | 7 | `python src/hybrid.py` | Per-project rule: model on high-variance projects, median elsewhere |
-| 8 | `python src/test_evaluation.py` | **Final evaluation on the test split** |
+| 8 | `python src/test_evaluation.py` | **Final evaluation on the test split** (week 9) |
+| 9 | `python src/embeddings.py <name>` | Build one dense text representation: `lsa`, `w2v_own`, `w2v_so`, `sbert`, `sbert_mp` |
+| 10 | `python src/compare_representations.py` | Every representation × 5 models (Ridge, kNN, SVR, RF, XGBoost), scored on validation |
+| 11 | `python src/test_evaluation_week10.py --final` | **Final evaluation of the week 10 winner on the test split** |
+
+Details and run times for steps 9–11: `docs/week10_embeddings.md`.
 
 `notebooks/01_eda.ipynb` holds the exploratory analysis of the raw data.
 
