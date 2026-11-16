@@ -50,17 +50,17 @@ def project_onehot(df, projects):
     return pd.get_dummies(df.project).reindex(columns=projects, fill_value=0).to_numpy(float)
 
 
-def representation(name, splits):
-    """(X_train, X_val) for one representation, or None if it was not built."""
+def representation(name, splits, parts=("train", "val")):
+    """Feature matrices for the requested splits, or None if not built yet."""
     if name == "tfidf":
         vec = joblib.load("models/tfidf.joblib")
-        return to_matrix(vec, splits["train"]), to_matrix(vec, splits["val"])
+        return tuple(to_matrix(vec, splits[p]) for p in parts)
     emb = load_embedding(name)
     if emb is None:
         return None
     # scaler fitted on training vectors only
     sc = StandardScaler().fit(emb["train"])
-    return sc.transform(emb["train"]), sc.transform(emb["val"])
+    return tuple(sc.transform(emb[p]) for p in parts)
 
 
 def with_project(X, df, projects):
