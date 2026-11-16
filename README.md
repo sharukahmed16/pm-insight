@@ -51,19 +51,72 @@ The board asked for (1) better text representations than TF-IDF (word2vec, BERT 
 domain-specific technique) and (2) other models, including LLMs. The split, metrics,
 baselines and protocol are unchanged; only the representation and the model vary.
 
-Validation macro MAE (lower is better; median baseline 2.965, mean baseline 3.592):
+Representations: TF-IDF (week 4), LSA (TF-IDF → 300-dim SVD), Stack Overflow word2vec
+(Efstathiou et al., MSR 2018: the domain-specific option) and Sentence-BERT
+(all-MiniLM-L6-v2, frozen). Models: Ridge, analogy-based kNN (median story point of the k
+most similar training issues of the same project), SVR, Random Forest, XGBoost.
+
+### Validation (used for every choice)
+
+Macro MAE, lower is better. Median baseline 2.965, mean baseline 3.592.
 
 | representation | kNN | RF | Ridge | SVR | XGBoost |
 |---|---:|---:|---:|---:|---:|
 | TF-IDF | 2.897 | 2.964 | 3.004 | 2.887 | 3.019 |
-| LSA (TF-IDF → 300-dim SVD) | 2.916 | 3.161 | 3.179 | 3.193 | 3.095 |
-| Sentence-BERT (MiniLM, frozen) | **2.853** | 3.103 | 2.996 | 3.075 | 2.976 |
+| LSA | 2.916 | 3.161 | 3.179 | 3.193 | 3.095 |
+| Stack Overflow word2vec | 2.871 | 3.149 | 3.084 | 3.130 | 3.004 |
+| Sentence-BERT | **2.853** | 3.103 | 2.996 | 3.075 | 2.976 |
 
-Sentence-BERT with analogy-based kNN (median of the 80 most similar training issues of the
-same project) is the best configuration so far and beats both baselines on 10 of 16
-projects. Sentence-BERT does *not* help the tree models, where TF-IDF stays ahead.
-Stack Overflow word2vec (domain-specific) and word2vec trained on our own issues are
-pending. The LLM comparison follows in week 12.
+The rule fixed in advance (lowest validation macro MAE) selected **Sentence-BERT + kNN (k=80)**.
+
+### Test (run once, `src/test_evaluation_week10.py --final`)
+
+| model | overall MAE | macro MAE | projects beating both baselines |
+|---|---:|---:|---:|
+| week 9: TF-IDF + Random Forest | **2.920** | **2.536** | 9 / 16 |
+| median (per project) | 2.984 | 2.553 | n/a |
+| week 10 winner: Sentence-BERT + kNN | 3.028 | 2.656 | **10 / 16** |
+| Stack Overflow word2vec + kNN | 3.015 | 2.619 | n/a |
+
+Full table: `results/week10_test_metrics.csv`.
+
+### What the test result means
+
+The week 10 winner meets the success criterion (10 of 16 projects) but its aggregate error is
+**higher** than both the week 9 Random Forest and the median baseline. The validation advantage
+did not carry over to the test split.
+
+One project accounts for it. On **moodle** the winner's test MAE is 8.49 against 6.48 for the
+median, which alone adds about 0.13 to the macro MAE. Moodle's estimates changed over time:
+
+| moodle | actual mean | actual median | kNN prediction (median) |
+|---|---:|---:|---:|
+| validation period | 18.8 | 8 | 13 |
+| test period | 7.1 | 3 | 13 |
+
+Because the splits are in creation order, the test period is the most recent one. The team
+began giving much smaller estimates, while the most similar *past* issues still carried large
+ones. kNN reproduces the past exactly, which was rewarded on validation and penalised on test.
+On the other 15 projects the winner's test MAE is slightly below both the median and the
+Random Forest (by about 0.02 on average).
+
+Conclusions:
+
+1. Dense embeddings help **only** with similarity-based estimation (kNN). With RF, SVR, Ridge and
+   XGBoost, TF-IDF stays ahead on both validation and test.
+2. The domain-specific Stack Overflow word2vec almost matches Sentence-BERT (validation 2.871 vs
+   2.853, test 2.619 vs 2.656) while being far cheaper to compute (16 s vs 17 min for all
+   23,129 issues on a laptop CPU).
+3. None of the representations beats the week 9 model on held-out data. **The application keeps
+   the week 9 Random Forest.** This decision was taken after seeing the test result. It does not
+   pick a new winner from the test numbers; it keeps the existing model because the challenger
+   failed to beat it.
+4. Estimation drift over time (moodle) limits every model trained on history. It is reported as
+   a limitation.
+
+Not done: word2vec trained on our own issues needs gensim, which has no Python 3.14 wheel yet.
+The 43% of tokens missing from the Stack Overflow model are stop words, which that model excludes.
+The LLM comparison follows in week 12.
 
 ---
 
