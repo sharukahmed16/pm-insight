@@ -116,7 +116,50 @@ Conclusions:
 
 Not done: word2vec trained on our own issues needs gensim, which has no Python 3.14 wheel yet.
 The 43% of tokens missing from the Stack Overflow model are stop words, which that model excludes.
-The LLM comparison follows in week 12.
+Week 12 covers the LLM comparison.
+
+---
+
+## Week 12: LLM estimation (board feedback, part 2)
+
+A local open LLM (`qwen2.5:7b`, run with Ollama on a laptop CPU, temperature 0) estimates
+story points in two settings: **zero-shot** (issue text only) and **few-shot** (plus the 5 most
+similar training issues of the same project with their real story points, retrieved with
+Sentence-BERT). Nothing was tuned, so the test split is used directly, on a stratified sample
+of 20 issues per project (320 issues). Every model is scored on the same 320 issues.
+Script: `src/llm_estimate.py`; details: `docs/week12_llm.md`.
+
+| model (test sample, 320 issues) | MAE | projects beating both baselines |
+|---|---:|---:|
+| median (per project) | **2.416** | n/a |
+| week 9: TF-IDF + Random Forest | 2.478 | 8 / 16 |
+| LLM zero-shot | 2.541 | 5 / 16 |
+| week 10: Sentence-BERT + kNN | 2.628 | 8 / 16 |
+| LLM few-shot (5 similar issues) | 2.744 | 5 / 16 |
+| mean (per project) | 3.399 | n/a |
+
+Each project contributes 20 issues, so overall and macro MAE are equal here.
+
+What the result means:
+
+1. **The LLM does not beat the per-project median**, in either setting, and it beats both
+   baselines on only 5 of 16 projects.
+2. **Zero-shot is almost a constant.** The model answered "3" for 247 of the 320 issues (77%).
+   Its reasonable MAE comes from 3 being the overall median story point, not from reading the
+   issue.
+3. **Few-shot does use the examples** (its answers spread over 1, 2, 3, 5, 8, 13), but it
+   inherits the same weakness as kNN: on moodle the retrieved past issues carry the old, larger
+   estimates, and the MAE there is 10.50 against 7.05 for the median. Without moodle, few-shot
+   (2.227) is on par with kNN (2.233) and still behind the median (2.107).
+4. **Cost.** 13 s per issue zero-shot and 57 s few-shot on a laptop CPU (about 6 hours for the
+   640 calls), against milliseconds for the Random Forest.
+
+Limitations: a sample of 20 issues per project is noisy (on it, even the Random Forest does
+not beat the median, although it does on the full test split); one model and one prompt were
+tried; the issues are public, so the LLM may have seen them during its own training. That
+would favour the LLM, and it still did not win.
+
+**Decision unchanged: the application uses the week 9 Random Forest.**
 
 ---
 
@@ -171,6 +214,7 @@ Run from the repository root, in this order. Each script writes its output to `r
 | 9 | `python src/embeddings.py <name>` | Build one dense text representation: `lsa`, `w2v_own`, `w2v_so`, `sbert`, `sbert_mp` |
 | 10 | `python src/compare_representations.py` | Every representation × 5 models (Ridge, kNN, SVR, RF, XGBoost), scored on validation |
 | 11 | `python src/test_evaluation_week10.py --final` | **Final evaluation of the week 10 winner on the test split** |
+| 12 | `run_week12_llm.bat` (or `python src/llm_estimate.py --split test --n 20`) | LLM zero-shot and few-shot estimation on a test sample; needs Ollama |
 
 Details and run times for steps 9–11: `docs/week10_embeddings.md`.
 
