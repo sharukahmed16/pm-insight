@@ -67,7 +67,8 @@ def test_known_limitation_h_pattern_matches_inside_words():
     require a line start, this test should be updated to the fixed behaviour.
     """
     assert clean_text("graph1. shows the curve") == "grap shows the curve"
-    assert clean_text("supports OAuth2.0 tokens") == "supports oaut tokens"
+    # the "h2." is removed and the "0" that followed it is left behind
+    assert clean_text("supports OAuth2.0 tokens") == "supports oaut 0 tokens"
 
 
 def test_split_is_sixty_twenty_twenty_in_order():

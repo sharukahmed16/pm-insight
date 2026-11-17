@@ -163,6 +163,19 @@ would favour the LLM, and it still did not win.
 
 ---
 
+## The web application
+
+A project tracker (projects, sprints, a three-column board, work items with status
+history) with the week 9 model inside the work-item form: "Suggest story points" shows the
+model's value and the three most similar past issues, and every saved item records both
+the model's suggestion and the team's final number. FastAPI, SQLAlchemy, PostgreSQL,
+Jinja2 templates; login with hashed passwords; manager and member roles.
+
+Setup: `setup_app.bat` once, then `run_app.bat`. Structure, tables, security decisions and
+limitations: `docs/app.md`.
+
+---
+
 ## Dataset
 
 Deep-SE story point dataset — Choetkiertikul et al., *A Deep Learning Model for Estimating
