@@ -5,3 +5,5 @@ __pycache__/
 data/raw/
 models/
 data/processed/
+.env
+logs/
