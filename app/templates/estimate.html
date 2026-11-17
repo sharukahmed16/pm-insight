@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Quick estimate{% endblock %}
+{% block content %}
+<div class="form-box">
+<h1>Quick estimate</h1>
+<p class="muted">Try the model without saving anything (the midterm demo page).</p>
+<form method="post" action="/estimate">
+  <label for="reference_project">Team</label>
+  <select id="reference_project" name="reference_project">
+    {% for r in references %}<option value="{{ r }}" {% if r == values.reference_project %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select>
+  <label for="title">Title</label>
+  <input id="title" name="title" value="{{ values.title or '' }}" required>
+  <label for="description">Description</label>
+  <textarea id="description" name="description">{{ values.description or '' }}</textarea>
+  <button type="submit">Estimate</button>
+</form>
+{% include "_suggestion.html" %}
+</div>
+{% endblock %}

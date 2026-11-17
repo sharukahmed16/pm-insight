@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ item.key }}{% endblock %}
+{% block content %}
+<p class="small"><a href="/projects/{{ project.id }}">{{ project.name }}</a>
+  {% if item.sprint %} / <a href="/sprints/{{ item.sprint.id }}">{{ item.sprint.name }}</a>{% endif %}</p>
+<h1>{{ item.key }}: {{ item.title }}</h1>
+<p>
+  <span class="tag">{{ item.item_type }}</span>
+  Status: <strong>{{ STATUS_LABELS[item.status] }}</strong> ·
+  Points: <strong>{{ item.story_points if item.story_points is not none else "not estimated" }}</strong> ·
+  Model suggested: {{ item.suggested_points if item.suggested_points is not none else "–" }}
+  {% if item.suggested_raw is not none %}<span class="muted small">({{ item.suggested_raw }})</span>{% endif %}
+</p>
+<div>
+  {% for s in ITEM_STATUSES if s != item.status %}
+  <form method="post" action="/items/{{ item.id }}/status" class="inline">
+    <input type="hidden" name="to_status" value="{{ s }}">
+    <button type="submit" class="secondary">Move to {{ STATUS_LABELS[s] }}</button>
+  </form>
+  {% endfor %}
+</div>
+
+<h2>Edit</h2>
+<form method="post" action="/items/{{ item.id }}" class="form-box">
+  {% include "_item_fields.html" %}
+  <button type="submit">Save changes</button>
+</form>
+
+<h2>History</h2>
+<table>
+  <tr><th>When</th><th>Who</th><th>Change</th></tr>
+  {% for h in item.history %}
+  <tr>
+    <td>{{ h.changed_at.strftime("%Y-%m-%d %H:%M") }}</td>
+    <td>{{ h.changed_by.full_name }}</td>
+    <td>{% if h.from_status %}{{ STATUS_LABELS[h.from_status] }} → {{ STATUS_LABELS[h.to_status] }}{% else %}created{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted small">Created by {{ item.created_by.full_name }} on {{ item.created_at.strftime("%Y-%m-%d") }}.</p>
+{% endblock %}

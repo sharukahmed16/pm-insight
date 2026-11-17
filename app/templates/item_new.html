@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}New work item · {{ project.key }}{% endblock %}
+{% block content %}
+<div class="form-box">
+<p class="small"><a href="/projects/{{ project.id }}">{{ project.name }}</a></p>
+<h1>New work item</h1>
+<form method="post" action="/projects/{{ project.id }}/items/new">
+  {% include "_item_fields.html" %}
+  {% include "_suggestion.html" %}
+  <button type="submit" name="action" value="suggest" class="secondary">Suggest story points</button>
+  <button type="submit" name="action" value="save">Save work item</button>
+</form>
+</div>
+{% endblock %}

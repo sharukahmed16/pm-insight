@@ -1,0 +1,17 @@
+{# shown after "Suggest" on the new-item page and on the quick-estimate page #}
+{% if problem %}
+<div class="errors">No suggestion: {{ problem }}</div>
+{% elif suggestion %}
+<div class="suggestion">
+  <div class="points">{{ suggestion.points }} points</div>
+  <div class="muted small">Model output {{ suggestion.raw }}, rounded to the nearest planning value.
+    A suggestion to discuss, not a decision.</div>
+  <p style="margin:10px 0 4px"><strong>Most similar past issues of the reference team</strong></p>
+  <table>
+    <tr><th>Issue</th><th>Text</th><th>Points</th></tr>
+    {% for s in suggestion.similar %}
+    <tr><td>{{ s.key }}</td><td>{{ s.text }}</td><td>{{ s.points }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
