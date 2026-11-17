@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+<table>
+  <tr><th>Name</th><th>Username</th><th>Role</th><th>Change role</th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.full_name }}</td><td>{{ u.username }}</td><td>{{ u.role }}</td>
+    <td>
+      {% if u.id != me.id %}
+      {% for r in roles if r != u.role %}
+      <form method="post" action="/users/{{ u.id }}/role" class="inline">
+        <input type="hidden" name="role" value="{{ r }}">
+        <button type="submit" class="secondary" style="margin:0">Make {{ r }}</button>
+      </form>
+      {% endfor %}
+      {% else %}<span class="muted">you</span>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

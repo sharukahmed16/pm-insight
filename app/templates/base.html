@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}PM-Insight{% endblock %} · PM-Insight</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Calibri, Arial, sans-serif; margin: 0; color: #222; background: #fff;
+         line-height: 1.45; font-size: 15px; }
+  header { background: #1f3864; color: #fff; padding: 10px 16px; display: flex;
+           flex-wrap: wrap; gap: 16px; align-items: center; }
+  header a { color: #fff; text-decoration: none; }
+  header .brand { font-weight: bold; font-size: 18px; margin-right: 8px; }
+  header .right { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+  header form { margin: 0; }
+  header button { background: none; border: 1px solid #fff; color: #fff; padding: 3px 10px;
+                  cursor: pointer; font: inherit; }
+  main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
+  h1 { color: #1f3864; margin: 4px 0 6px; font-size: 26px; }
+  h2 { color: #1f3864; margin: 26px 0 8px; font-size: 19px; }
+  a { color: #1f3864; }
+  .muted { color: #666; }
+  .small { font-size: 13px; }
+  label { display: block; font-weight: bold; margin-top: 12px; }
+  input, textarea, select { width: 100%; padding: 6px; font: inherit; border: 1px solid #999; }
+  textarea { min-height: 110px; }
+  button, .button { margin-top: 14px; padding: 7px 16px; font: inherit; cursor: pointer;
+                    background: #1f3864; color: #fff; border: 1px solid #1f3864;
+                    text-decoration: none; display: inline-block; }
+  button.secondary, .button.secondary { background: #fff; color: #1f3864; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef1f7; }
+  .flash { padding: 8px 12px; margin-bottom: 12px; border: 1px solid #6a9b5c; background: #eef6ea; }
+  .flash.error, .errors { border-color: #b33; background: #fbeaea; }
+  .errors { padding: 8px 12px; border: 1px solid #b33; margin: 10px 0; }
+  .errors ul { margin: 0; padding-left: 18px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 14px; }
+  .narrow { max-width: 420px; }
+  .form-box { max-width: 720px; }
+  .suggestion { border: 2px solid #1f3864; padding: 10px 14px; margin: 14px 0; }
+  .suggestion .points { font-size: 34px; font-weight: bold; color: #1f3864; }
+  .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+  .column { background: #f4f5f8; border: 1px solid #ccd; padding: 8px; min-height: 120px; }
+  .column h3 { margin: 0 0 8px; font-size: 16px; color: #1f3864; }
+  .card { background: #fff; border: 1px solid #bbb; padding: 7px 9px; margin-bottom: 8px; }
+  .card form { display: inline; }
+  .card button { margin-top: 6px; padding: 2px 8px; font-size: 13px; }
+  .tag { display: inline-block; border: 1px solid #999; padding: 0 6px; font-size: 12px; }
+  .inline { display: inline; }
+  @media (max-width: 700px) {
+    .board { grid-template-columns: 1fr; }
+    /* wide tables scroll sideways inside themselves instead of widening the page */
+    table { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/projects">PM-Insight</a>
+  {% if me %}
+    <a href="/projects">Projects</a>
+    <a href="/estimate">Quick estimate</a>
+    {% if me.role == "manager" %}<a href="/users">Users</a>{% endif %}
+    <span class="right">
+      <span>{{ me.full_name }} ({{ me.role }})</span>
+      <form method="post" action="/logout"><button type="submit">Log out</button></form>
+    </span>
+  {% endif %}
+</header>
+<main>
+  {% for f in flashes %}<div class="flash {{ f.kind }}">{{ f.text }}</div>{% endfor %}
+  {% if errors %}
+    <div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
