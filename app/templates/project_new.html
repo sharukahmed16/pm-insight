@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}New project{% endblock %}
+{% block content %}
+<div class="form-box">
+<h1>New project</h1>
+<form method="post" action="/projects/new">
+  <div class="row">
+    <div><label for="name">Name</label>
+      <input id="name" name="name" value="{{ values.name or '' }}" required></div>
+    <div><label for="key">Key (e.g. PMI)</label>
+      <input id="key" name="key" value="{{ values.key or '' }}" maxlength="10" required></div>
+  </div>
+  <label for="description">Description</label>
+  <textarea id="description" name="description">{{ values.description or '' }}</textarea>
+  <label for="reference_project">Estimates follow the scale of</label>
+  <select id="reference_project" name="reference_project" required>
+    <option value="">choose a reference team</option>
+    {% for r in references %}
+    <option value="{{ r }}" {% if r == values.reference_project %}selected{% endif %}>{{ r }}</option>
+    {% endfor %}
+  </select>
+  <p class="muted small">The model learned the story point habits of 16 open-source teams.
+    Pick the one whose work and point sizes are closest to this project.</p>
+  <button type="submit">Create project</button>
+</form>
+</div>
+{% endblock %}

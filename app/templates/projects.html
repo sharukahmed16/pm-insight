@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Projects{% endblock %}
+{% block content %}
+<h1>Projects</h1>
+{% if me.role == "manager" %}<a class="button" href="/projects/new">New project</a>{% endif %}
+{% if projects %}
+<table>
+  <tr><th>Key</th><th>Name</th><th>Work items</th><th>Active sprint</th><th>Estimates follow</th></tr>
+  {% for p in projects %}
+  <tr>
+    <td><a href="/projects/{{ p.id }}">{{ p.key }}</a></td>
+    <td><a href="/projects/{{ p.id }}">{{ p.name }}</a></td>
+    <td>{{ p.items|length }}</td>
+    <td>{% for s in p.sprints if s.status == "active" %}<a href="/sprints/{{ s.id }}">{{ s.name }}</a>{% else %}<span class="muted">none</span>{% endfor %}</td>
+    <td>{{ p.reference_project }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="muted">No projects yet.{% if me.role != "manager" %} A manager can create one.{% endif %}</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ sprint.name }} · {{ project.key }}{% endblock %}
+{% block content %}
+<p class="small"><a href="/projects/{{ project.id }}">{{ project.name }}</a></p>
+<h1>{{ sprint.name }} <span class="muted">({{ sprint.status }})</span></h1>
+{% if sprint.goal %}<p>Goal: {{ sprint.goal }}</p>{% endif %}
+<p class="muted">{{ sprint.start_date or "–" }} → {{ sprint.end_date or "–" }}</p>
+
+{% if sprint.status == "closed" %}
+<p>Closed: <strong>{{ sprint.completed_points }}</strong> of {{ sprint.committed_points }} committed points completed.
+  Unfinished items went back to the backlog.</p>
+{% else %}
+<p><strong>{{ done_points }}</strong> of {{ total_points }} points done
+  {% if unestimated %}· <span class="muted">{{ unestimated }} item(s) not estimated</span>{% endif %}</p>
+<a class="button secondary" href="/projects/{{ project.id }}/items/new?sprint_id={{ sprint.id }}">Add work item</a>
+{% if me.role == "manager" and sprint.status == "planned" %}
+<form method="post" action="/sprints/{{ sprint.id }}/start" class="inline"><button type="submit">Start sprint</button></form>
+{% elif me.role == "manager" and sprint.status == "active" %}
+<form method="post" action="/sprints/{{ sprint.id }}/close" class="inline"><button type="submit">Close sprint</button></form>
+{% endif %}
+{% endif %}
+
+<div class="board">
+  {% for status, items in columns.items() %}
+  <div class="column">
+    <h3>{{ STATUS_LABELS[status] }} ({{ items|length }})</h3>
+    {% for i in items %}
+    <div class="card">
+      <a href="/items/{{ i.id }}">{{ i.key }}</a> {{ i.title }}<br>
+      <span class="small muted">{{ i.story_points if i.story_points is not none else "?" }} pts
+        {% if i.assignee %}· {{ i.assignee.full_name }}{% endif %}</span><br>
+      {% if sprint.status != "closed" %}
+      {% for s in ITEM_STATUSES if s != status %}
+      <form method="post" action="/items/{{ i.id }}/status">
+        <input type="hidden" name="to_status" value="{{ s }}">
+        <input type="hidden" name="back" value="board">
+        <button type="submit" class="secondary">→ {{ STATUS_LABELS[s] }}</button>
+      </form>
+      {% endfor %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

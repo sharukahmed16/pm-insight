@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ project.key }}{% endblock %}
+{% block content %}
+<h1>{{ project.name }} <span class="muted">({{ project.key }})</span></h1>
+{% if project.description %}<p>{{ project.description }}</p>{% endif %}
+<p class="muted small">Estimates follow the scale of the <strong>{{ project.reference_project }}</strong> team.</p>
+<a class="button" href="/projects/{{ project.id }}/items/new">New work item</a>
+
+<h2>Sprints</h2>
+{% if open_sprints %}
+<table>
+  <tr><th>Sprint</th><th>Status</th><th>Dates</th><th>Items</th><th>Points</th><th></th></tr>
+  {% for s in open_sprints %}
+  <tr>
+    <td><a href="/sprints/{{ s.id }}">{{ s.name }}</a>{% if s.goal %}<br><span class="muted small">{{ s.goal }}</span>{% endif %}</td>
+    <td>{{ s.status }}</td>
+    <td>{{ s.start_date or "–" }} → {{ s.end_date or "–" }}</td>
+    <td>{{ s.items|length }}</td>
+    <td>{{ s.items|map(attribute="story_points")|select|sum }}</td>
+    <td>
+      {% if me.role == "manager" and s.status == "planned" %}
+      <form method="post" action="/sprints/{{ s.id }}/start" class="inline"><button type="submit" style="margin:0">Start</button></form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="muted">No open sprints.</p>{% endif %}
+
+{% if me.role == "manager" %}
+<details style="margin-top:10px">
+  <summary>Plan a new sprint</summary>
+  <form method="post" action="/projects/{{ project.id }}/sprints" class="form-box">
+    <div class="row">
+      <div><label for="s_name">Name</label><input id="s_name" name="name" value="Sprint {{ project.sprints|length + 1 }}" required></div>
+      <div><label for="s_start">Start</label><input id="s_start" name="start_date" type="date" value="{{ today }}"></div>
+      <div><label for="s_end">End</label><input id="s_end" name="end_date" type="date"></div>
+    </div>
+    <label for="s_goal">Goal</label><input id="s_goal" name="goal">
+    <button type="submit">Plan sprint</button>
+  </form>
+</details>
+{% endif %}
+
+<h2>Backlog <span class="muted small">({{ backlog|length }} items, {{ backlog_points }} points)</span></h2>
+{% if backlog %}
+<table>
+  <tr><th>Key</th><th>Title</th><th>Type</th><th>Status</th><th>Points</th><th>Model said</th><th>Assignee</th></tr>
+  {% for i in backlog %}
+  <tr>
+    <td><a href="/items/{{ i.id }}">{{ i.key }}</a></td>
+    <td><a href="/items/{{ i.id }}">{{ i.title }}</a></td>
+    <td>{{ i.item_type }}</td>
+    <td>{{ STATUS_LABELS[i.status] }}</td>
+    <td>{{ i.story_points if i.story_points is not none else "–" }}</td>
+    <td>{{ i.suggested_points if i.suggested_points is not none else "–" }}</td>
+    <td>{{ i.assignee.full_name if i.assignee else "–" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="muted">The backlog is empty.</p>{% endif %}
+
+{% if closed_sprints %}
+<h2>Velocity (closed sprints)</h2>
+<table>
+  <tr><th>Sprint</th><th>Ended</th><th>Committed</th><th>Completed</th></tr>
+  {% for s in closed_sprints %}
+  <tr><td><a href="/sprints/{{ s.id }}">{{ s.name }}</a></td><td>{{ s.end_date or "–" }}</td>
+      <td>{{ s.committed_points }}</td><td>{{ s.completed_points }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Model suggestions vs team decisions</h2>
+{% if stats %}
+<p>Over {{ stats.n }} estimated items: the team kept the model's value <strong>{{ stats.exact }}%</strong>
+  of the time; the average difference was <strong>{{ stats.mae }}</strong> points.</p>
+{% else %}
+<p class="muted">Appears once items have both a model suggestion and the team's points.</p>
+{% endif %}
+{% endblock %}
